@@ -13,6 +13,16 @@ async def get_activities(
     db: Session = Depends(get_db),
     api_key: str = Depends(get_api_key)
 ):
+    """
+    Получить список всех видов деятельности верхнего уровня.
+    
+    Args:
+        db: Сессия базы данных
+        api_key: API ключ для аутентификации
+    
+    Returns:
+        List[Activity]: Список видов деятельности
+    """
     return db.query(ActivityModel).filter(ActivityModel.parent_id.is_(None)).all()
 
 @router.get("/{activity_id}", response_model=Activity)
@@ -32,6 +42,20 @@ async def create_activity(
     db: Session = Depends(get_db),
     api_key: str = Depends(get_api_key)
 ):
+    """
+    Создать новый вид деятельности.
+    
+    Args:
+        activity: Данные для создания вида деятельности
+        db: Сессия базы данных
+        api_key: API ключ для аутентификации
+    
+    Returns:
+        Activity: Созданный вид деятельности
+        
+    Raises:
+        HTTPException: Если превышен максимальный уровень вложенности
+    """
     # Проверка уровня вложенности
     if activity.parent_id:
         parent = db.query(ActivityModel).filter(ActivityModel.id == activity.parent_id).first()

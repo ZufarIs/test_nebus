@@ -14,15 +14,29 @@ router = APIRouter()
 
 @router.get("/", response_model=List[Organization])
 async def get_organizations(
+    db: Session = Depends(get_db),
+    api_key: str = Depends(get_api_key),
     building_id: Optional[int] = None,
     activity_id: Optional[int] = None,
     lat: Optional[float] = None,
     lon: Optional[float] = None,
-    radius: Optional[float] = None,
-    name: Optional[str] = None,
-    db: Session = Depends(get_db),
-    api_key: str = Depends(get_api_key)
+    radius: Optional[float] = None
 ):
+    """
+    Получить список организаций с возможностью фильтрации.
+    
+    Args:
+        db: Сессия базы данных
+        api_key: API ключ для аутентификации
+        building_id: Фильтр по ID здания
+        activity_id: Фильтр по ID вида деятельности
+        lat: Широта для поиска по радиусу
+        lon: Долгота для поиска по радиусу
+        radius: Радиус поиска в километрах
+    
+    Returns:
+        List[Organization]: Список организаций
+    """
     query = db.query(OrganizationModel)
 
     if building_id:
@@ -68,6 +82,20 @@ async def get_organization(
     db: Session = Depends(get_db),
     api_key: str = Depends(get_api_key)
 ):
+    """
+    Получить информацию о конкретной организации.
+    
+    Args:
+        org_id: ID организации
+        db: Сессия базы данных
+        api_key: API ключ для аутентификации
+    
+    Returns:
+        Organization: Информация об организации
+        
+    Raises:
+        HTTPException: Если организация не найдена
+    """
     org = db.query(OrganizationModel).filter(OrganizationModel.id == org_id).first()
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")

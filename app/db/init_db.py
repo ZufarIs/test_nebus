@@ -1,76 +1,90 @@
+import csv
+import os
 from sqlalchemy.orm import Session
 from app.models.activity import Activity
 from app.models.building import Building
-from app.models.organization import Organization, organization_phones
+from app.models.organization import Organization, organization_phones, organization_activities
+from typing import List, Dict
+
+def load_csv(filename: str) -> List[Dict]:
+    """
+    Загрузить данные из CSV файла.
+    
+    Args:
+        filename (str): Имя файла CSV
+        
+    Returns:
+        List[Dict]: Список словарей с данными из CSV
+        
+    Raises:
+        FileNotFoundError: Если файл не найден
+    """
+    data = []
+    with open(os.path.join('data', filename), 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Преобразуем 'null' в None и обрабатываем строковые поля
+            for key, value in row.items():
+                if value == 'null' or value == '':
+                    row[key] = None
+                elif key in ['latitude', 'longitude']:
+                    row[key] = float(value)
+                elif key in ['id', 'parent_id', 'level', 'building_id', 'organization_id', 'activity_id']:
+                    row[key] = int(value) if value else None
+                else:
+                    # Обработка строковых полей (name, address и т.д.)
+                    row[key] = value.strip() if value else None
+            data.append(row)
+    return data
 
 def init_db(db: Session) -> None:
-    # Создаем активности
-    food = Activity(name="Food", level=1)
-    db.add(food)
-    db.flush()
-
-    meat = Activity(name="Meat products", parent_id=food.id, level=2)
-    dairy = Activity(name="Dairy products", parent_id=food.id, level=2)
-    db.add_all([meat, dairy])
-
-    auto = Activity(name="Automobiles", level=1)
-    db.add(auto)
-    db.flush()
-
-    trucks = Activity(name="Trucks", parent_id=auto.id, level=2)
-    cars = Activity(name="Cars", parent_id=auto.id, level=2)
-    db.add_all([trucks, cars])
+    """
+    Инициализировать базу данных тестовыми данными из CSV файлов.
     
-    parts = Activity(name="Spare parts", parent_id=cars.id, level=3)
-    accessories = Activity(name="Accessories", parent_id=cars.id, level=3)
-    db.add_all([parts, accessories])
+    Args:
+        db (Session): Сессия базы данных
+        
+    Raises:
+        Exception: При ошибке загрузки данных
+    """
+    # Загружаем данные из CSV файлов
+    activities_data = load_csv('activities.csv')
+    buildings_data = load_csv('buildings.csv')
+    organizations_data = load_csv('organizations.csv')
+    org_activities_data = load_csv('organization_activities.csv')
+    org_phones_data = load_csv('organization_phones.csv')
+
+    # Создаем активности
+    for activity in activities_data:
+        db_activity = Activity(**activity)
+        db.add(db_activity)
     db.flush()
 
     # Создаем здания
-    building1 = Building(
-        address="Moscow, Lenina St. 1, office 3",
-        latitude=55.7558,
-        longitude=37.6173
-    )
-    building2 = Building(
-        address="32/1 Bluchera",
-        latitude=55.7558,
-        longitude=37.6173
-    )
-    db.add_all([building1, building2])
+    for building in buildings_data:
+        db_building = Building(**building)
+        db.add(db_building)
     db.flush()
 
     # Создаем организации
-    org1 = Organization(
-        name="Horns and Hooves LLC",
-        building_id=building1.id
-    )
-    org1.activities.extend([meat, dairy])
-    db.add(org1)
+    for org in organizations_data:
+        db_org = Organization(**org)
+        db.add(db_org)
     db.flush()
 
-    # Добавляем телефоны
-    db.execute(
-        organization_phones.insert(),
-        [
-            {"organization_id": org1.id, "phone": "2-222-222"},
-            {"organization_id": org1.id, "phone": "3-333-333"}
-        ]
-    )
+    # Добавляем связи организаций с активностями
+    for relation in org_activities_data:
+        db.execute(
+            organization_activities.insert(),
+            [relation]
+        )
 
-    org2 = Organization(
-        name="AutoParts Plus",
-        building_id=building2.id
-    )
-    org2.activities.extend([parts, accessories])
-    db.add(org2)
-    db.flush()
-
-    db.execute(
-        organization_phones.insert(),
-        [
-            {"organization_id": org2.id, "phone": "8-923-666-13-13"}
-        ]
-    )
+    # Добавляем телефоны организаций
+    for phone in org_phones_data:
+        db.execute(
+            organization_phones.insert(),
+            [phone]
+        )
 
     db.commit() 
+ 
