@@ -1,32 +1,28 @@
+from typing import List, TYPE_CHECKING
 from pydantic import BaseModel, Field
-from typing import Optional, List
+
+if TYPE_CHECKING:
+    from .organization import Organization
 
 class BuildingBase(BaseModel):
-    """
-    Базовая схема для здания.
-    
-    Attributes:
-        address (str): Адрес здания
-        latitude (float): Широта
-        longitude (float): Долгота
-    """
+    """Базовая схема здания."""
     address: str
     latitude: float = Field(..., ge=-90, le=90)
     longitude: float = Field(..., ge=-180, le=180)
 
 class BuildingCreate(BuildingBase):
-    """Схема для создания нового здания."""
+    """Схема для создания здания."""
     pass
 
 class Building(BuildingBase):
-    """
-    Схема для отображения здания.
-    
-    Дополнительные атрибуты:
-        id (int): Уникальный идентификатор
-        organizations (List[Organization]): Список организаций в здании
-    """
+    """Схема для отображения здания."""
     id: int
+    
+    class Config:
+        from_attributes = True
+
+class BuildingDetail(Building):
+    """Расширенная схема здания с организациями."""
     organizations: List['Organization'] = []
 
     class Config:

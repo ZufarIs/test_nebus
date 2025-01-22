@@ -7,3 +7,11 @@ Base = declarative_base()
 class Base(DeclarativeBase):
     """Базовый класс для моделей SQLAlchemy с поддержкой декларативного стиля."""
     pass 
+
+# Импортируем модели для Alembic
+from app.db.base_class import Base  # noqa
+from app.models.organization import Organization, PhoneNumber  # noqa
+from app.models.building import Building  # noqa
+from app.models.activity import Activity  # noqa
+
+# Все модели должны быть импортированы здесь для корректной работы Alembic 

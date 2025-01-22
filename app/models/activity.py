@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from app.db.base import Base
+from app.db.base_class import Base
+from app.models.organization import organization_activity
 
 class Activity(Base):
     """
@@ -23,10 +24,14 @@ class Activity(Base):
     level = Column(Integer, default=1)
     
     # Отношения
-    children = relationship("Activity", 
-                          backref="parent",
-                          remote_side=[id],
-                          cascade="all, delete-orphan")
-    organizations = relationship("Organization",
-                               secondary="organization_activities",
-                               back_populates="activities") 
+    children = relationship(
+        "Activity",
+        backref="parent",
+        remote_side=[id],
+        lazy="joined"
+    )
+    organizations = relationship(
+        "Organization",
+        secondary=organization_activity,
+        back_populates="activities"
+    )

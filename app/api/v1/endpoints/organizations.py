@@ -1,10 +1,10 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from app.core.security import get_api_key
 from app.db.session import get_db
-from app.schemas.organization import Organization, OrganizationCreate
+from app.schemas.organization import Organization, OrganizationDetail
 from app.models.organization import Organization as OrganizationModel
 from app.models.building import Building
 from app.models.activity import Activity
@@ -12,15 +12,16 @@ from geopy.distance import geodesic
 
 router = APIRouter()
 
-@router.get("/", response_model=List[Organization])
+@router.get("/", response_model=List[OrganizationDetail])
 async def get_organizations(
     db: Session = Depends(get_db),
     api_key: str = Depends(get_api_key),
-    building_id: Optional[int] = None,
-    activity_id: Optional[int] = None,
-    lat: Optional[float] = None,
-    lon: Optional[float] = None,
-    radius: Optional[float] = None
+    building_id: int = None,
+    activity_id: int = None,
+    lat: float = None,
+    lon: float = None,
+    radius: float = None,
+    name: str = None
 ):
     """
     Получить список организаций с возможностью фильтрации.
@@ -35,7 +36,7 @@ async def get_organizations(
         radius: Радиус поиска в километрах
     
     Returns:
-        List[Organization]: Список организаций
+        List[OrganizationDetail]: Список организаций
     """
     query = db.query(OrganizationModel)
 
@@ -72,7 +73,8 @@ async def get_organizations(
         return filtered_orgs
 
     if name:
-        query = query.filter(OrganizationModel.name.ilike(f"%{name}%"))
+        # Используем case-insensitive поиск, совместимый с обоими SQLite и PostgreSQL
+        query = query.filter(func.lower(OrganizationModel.name).like(f"%{name.lower()}%"))
 
     return query.all()
 

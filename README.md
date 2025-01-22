@@ -55,29 +55,34 @@ docker-compose exec web alembic upgrade head
 
 ### Локальная разработка
 
-1. Создайте виртуальное окружение:
+1. Создайте виртуальное окружение и установите зависимости:
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/MacOS
 # или
 venv\Scripts\activate     # Windows
-```
-
-2. Установите зависимости:
-```bash
 pip install -r requirements.txt
 ```
 
-3. Настройте базу данных в .env
+2. Создайте файл .env с настройками:
+```bash
+DATABASE_TYPE=sqlite
+API_KEY=your_secret_api_key
+```
 
-4. Примените миграции:
+3. Примените миграции:
 ```bash
 alembic upgrade head
 ```
 
+4. Инициализируйте тестовые данные:
+```bash
+python scripts/init_db.py
+```
+
 5. Запустите приложение:
 ```bash
-uvicorn main:app --reload
+python run.py
 ```
 
 ## API Документация
