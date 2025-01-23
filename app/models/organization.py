@@ -19,20 +19,28 @@ class Organization(Base):
     building_id = Column(Integer, ForeignKey("buildings.id"))
 
     # Отношения
-    building = relationship("Building", back_populates="organizations")
+    phones = relationship(
+        "PhoneNumber", 
+        back_populates="organization",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        single_parent=True,
+        uselist=True
+    )
     activities = relationship(
         "Activity",
-        secondary=organization_activity,
-        back_populates="organizations"
+        secondary="organization_activity",
+        back_populates="organizations",
+        cascade="save-update, merge"
     )
-    phones = relationship("PhoneNumber", back_populates="organization")
+    building = relationship("Building", back_populates="organizations")
 
 class PhoneNumber(Base):
     """Модель телефонного номера."""
     __tablename__ = "phone_numbers"
 
     id = Column(Integer, primary_key=True, index=True)
-    phone = Column(String)
+    phone = Column(String, unique=True, index=True)
     organization_id = Column(Integer, ForeignKey("organizations.id"))
 
     organization = relationship("Organization", back_populates="phones")

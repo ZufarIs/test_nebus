@@ -7,10 +7,27 @@ from app.db.session import get_db
 from app.schemas.organization import Organization, OrganizationDetail
 from app.models.organization import Organization as OrganizationModel
 from app.models.building import Building
-from app.models.activity import Activity
+from app.models.activity import Activity as ActivityModel
 from geopy.distance import geodesic
 
 router = APIRouter()
+
+def get_all_child_activity_ids(db: Session, activity_id: int) -> List[int]:
+    """Рекурсивно получает все дочерние ID для заданного activity_id."""
+    activity_ids = [activity_id]
+    stack = [activity_id]
+    
+    while stack:
+        current_id = stack.pop()
+        current = db.query(ActivityModel).get(current_id)
+        if current:
+            # Исправление: проверяем наличие children
+            children = current.children or []
+            child_ids = [child.id for child in children]
+            activity_ids.extend(child_ids)
+            stack.extend(child_ids)
+    
+    return activity_ids
 
 @router.get("/", response_model=List[OrganizationDetail])
 async def get_organizations(
@@ -44,19 +61,10 @@ async def get_organizations(
         query = query.filter(OrganizationModel.building_id == building_id)
     
     if activity_id:
-        activity = db.query(Activity).filter(Activity.id == activity_id).first()
-        if activity:
-            # Получаем все дочерние активности
-            activity_ids = [activity.id]
-            stack = [activity]
-            while stack:
-                current = stack.pop()
-                stack.extend(current.children)
-                activity_ids.extend([child.id for child in current.children])
-            
-            query = query.filter(
-                OrganizationModel.activities.any(Activity.id.in_(activity_ids))
-            )
+        activity_ids = get_all_child_activity_ids(db, activity_id)
+        query = query.filter(
+            OrganizationModel.activities.any(ActivityModel.id.in_(activity_ids))
+        )
 
     if lat and lon and radius:
         # Фильтрация по радиусу

@@ -1,35 +1,25 @@
-from typing import Optional, List
-from pydantic import BaseModel
+from typing import List, Optional
+from pydantic import BaseModel, ConfigDict
 
 class ActivityBase(BaseModel):
-    """
-    Базовая схема для вида деятельности.
-    
-    Attributes:
-        name (str): Название вида деятельности
-        parent_id (Optional[int]): ID родительского вида деятельности
-        level (int): Уровень в иерархии
-    """
+    """Базовая схема вида деятельности."""
     name: str
-    level: Optional[int] = 1
+    level: int
     parent_id: Optional[int] = None
 
 class ActivityCreate(ActivityBase):
-    """Схема для создания нового вида деятельности."""
+    """Схема для создания вида деятельности."""
     pass
 
 class Activity(ActivityBase):
-    """
-    Схема для отображения вида деятельности.
-    
-    Дополнительные атрибуты:
-        id (int): Уникальный идентификатор
-    """
+    """Схема для отображения вида деятельности."""
     id: int
     children: List['Activity'] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+        arbitrary_types_allowed=True
+    )
 
-# Для решения проблемы с циклическими ссылками
+# Необходимо для правильной работы рекурсивных ссылок
 Activity.model_rebuild() 
