@@ -11,6 +11,14 @@ class ActivityCreate(ActivityBase):
     """Схема для создания вида деятельности."""
     pass
 
+class ActivitySimple(ActivityBase):
+    """Упрощенная схема для использования в других моделях."""
+    id: int
+    
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
 class Activity(ActivityBase):
     """Схема для отображения вида деятельности."""
     id: int
@@ -18,7 +26,9 @@ class Activity(ActivityBase):
 
     model_config = ConfigDict(
         from_attributes=True,
-        arbitrary_types_allowed=True
+        json_encoders={
+            set: list  # для корректной сериализации множеств
+        }
     )
 
 # Необходимо для правильной работы рекурсивных ссылок

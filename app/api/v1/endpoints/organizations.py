@@ -9,6 +9,7 @@ from app.models.organization import Organization as OrganizationModel
 from app.models.building import Building
 from app.models.activity import Activity as ActivityModel
 from geopy.distance import geodesic
+from app.crud.organization import get_organizations, get_organization
 
 router = APIRouter()
 
@@ -30,61 +31,28 @@ def get_all_child_activity_ids(db: Session, activity_id: int) -> List[int]:
     return activity_ids
 
 @router.get("/", response_model=List[OrganizationDetail])
-async def get_organizations(
+def read_organizations(
     db: Session = Depends(get_db),
-    api_key: str = Depends(get_api_key),
-    building_id: int = None,
-    activity_id: int = None,
-    lat: float = None,
-    lon: float = None,
-    radius: float = None,
-    name: str = None
+    skip: int = 0,
+    limit: int = 100,
+    activity_id: Optional[int] = None,
+    lat: Optional[float] = None,
+    lon: Optional[float] = None,
+    radius: Optional[float] = None
 ):
     """
-    Получить список организаций с возможностью фильтрации.
-    
-    Args:
-        db: Сессия базы данных
-        api_key: API ключ для аутентификации
-        building_id: Фильтр по ID здания
-        activity_id: Фильтр по ID вида деятельности
-        lat: Широта для поиска по радиусу
-        lon: Долгота для поиска по радиусу
-        radius: Радиус поиска в километрах
-    
-    Returns:
-        List[OrganizationDetail]: Список организаций
+    Получить список организаций с фильтрацией.
     """
-    query = db.query(OrganizationModel)
-
-    if building_id:
-        query = query.filter(OrganizationModel.building_id == building_id)
-    
-    if activity_id:
-        activity_ids = get_all_child_activity_ids(db, activity_id)
-        query = query.filter(
-            OrganizationModel.activities.any(ActivityModel.id.in_(activity_ids))
-        )
-
-    if lat and lon and radius:
-        # Фильтрация по радиусу
-        organizations = query.all()
-        filtered_orgs = []
-        point1 = (lat, lon)
-        
-        for org in organizations:
-            point2 = (org.building.latitude, org.building.longitude)
-            distance = geodesic(point1, point2).kilometers
-            if distance <= radius:
-                filtered_orgs.append(org)
-        
-        return filtered_orgs
-
-    if name:
-        # Используем case-insensitive поиск, совместимый с обоими SQLite и PostgreSQL
-        query = query.filter(func.lower(OrganizationModel.name).like(f"%{name.lower()}%"))
-
-    return query.all()
+    organizations = get_organizations(
+        db, 
+        skip=skip, 
+        limit=limit,
+        activity_id=activity_id,
+        lat=lat,
+        lon=lon,
+        radius=radius
+    )
+    return organizations
 
 @router.get("/{org_id}", response_model=Organization)
 async def get_organization(

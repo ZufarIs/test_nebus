@@ -5,47 +5,16 @@ from app.core.security import get_api_key
 from app.db.session import get_db
 from app.schemas.activity import Activity
 from app.models.activity import Activity as ActivityModel
+from app.crud.activity import get_activities
 
 router = APIRouter()
 
 @router.get("/", response_model=List[Activity])
-async def get_activities(
-    db: Session = Depends(get_db),
-    api_key: str = Depends(get_api_key)
-):
+def read_activities(db: Session = Depends(get_db)):
     """
     Получить дерево видов деятельности.
-    
-    Args:
-        db: Сессия базы данных
-        api_key: API ключ для аутентификации
-    
-    Returns:
-        List[Activity]: Список корневых видов деятельности с их дочерними элементами
     """
-    # Получаем только корневые виды деятельности (parent_id is NULL)
-    root_activities = db.query(ActivityModel).filter(ActivityModel.parent_id.is_(None)).all()
-    
-    # Преобразуем в модели Pydantic
-    return [
-        Activity(
-            id=activity.id,
-            name=activity.name,
-            level=activity.level,
-            parent_id=activity.parent_id,
-            children=[
-                Activity(
-                    id=child.id,
-                    name=child.name,
-                    level=child.level,
-                    parent_id=child.parent_id,
-                    children=[]
-                )
-                for child in (activity.children or [])  # Используем пустой список, если children is None
-            ]
-        )
-        for activity in root_activities
-    ]
+    return get_activities(db)
 
 @router.get("/{activity_id}", response_model=Activity)
 async def get_activity(

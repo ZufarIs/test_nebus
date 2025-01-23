@@ -21,18 +21,14 @@ class Activity(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    level = Column(Integer, default=1)
-    parent_id = Column(Integer, ForeignKey("activities.id"), nullable=True)
+    level = Column(Integer)
+    parent_id = Column(Integer, ForeignKey('activities.id'), nullable=True)
     
     # Отношения
-    children = relationship(
-        "Activity",
-        backref="parent",
-        remote_side=[id],
-        lazy="joined",
-        cascade="all",
-        collection_class=list
-    )
+    children = relationship("Activity", 
+                          backref="parent",
+                          remote_side=[id],
+                          lazy="joined")
     organizations = relationship(
         "Organization",
         secondary="organization_activity",
