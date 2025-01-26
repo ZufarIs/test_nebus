@@ -100,12 +100,17 @@ curl -H "X-API-Key: your_secret_api_key" \
 organization_directory/
 ├── alembic/              # Миграции БД
 ├── app/                  # Основной код
-│   ├── api/             # API endpoints
-│   ├── core/            # Конфигурация
-│   ├── db/              # Работа с БД
+│   ├── api/             # API endpoints и роутеры
+│   │   └── v1/         # Версия 1 API
+│   │       ├── endpoints/  # Обработчики запросов
+│   │       └── router.py   # Роутер API v1
+│   ├── core/            # Конфигурация и общие компоненты
+│   ├── db/              # Работа с БД и инициализация
+│   ├── initial_data/    # CSV файлы с начальными данными
 │   ├── models/          # SQLAlchemy модели
 │   └── schemas/         # Pydantic схемы
 ├── docker/              # Docker файлы
+└── data/                # БД SQLite
 ```
 
 ## Разработка
