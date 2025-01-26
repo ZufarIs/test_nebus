@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings
 from typing import Optional, Any
 
@@ -19,7 +20,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     DATABASE_TYPE: str = "sqlite"
-    SQLITE_URL: str = "sqlite:///./data/sql_app.db"
+    SQLITE_URL: str = f"sqlite:///{os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data', 'sql_app.db')}"
     API_KEY: str
     
     # POSTGRES_SERVER: str = "localhost"

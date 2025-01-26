@@ -4,15 +4,16 @@ from app.db.session import engine
 from app.db.base import Base
 from app.db.init_db import init_db
 from app.db.session import SessionLocal
+from app.core.config import settings
 
 def init_database():
     """
     Инициализация базы данных при первом запуске.
     """
-    db_path = "data/sql_app.db"
-    if not os.path.exists(db_path):
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        print("База данных не найдена. Выполняется инициализация...")
+    if not os.path.exists(settings.DB_PATH):
+        # Создаем директорию data если её нет
+        os.makedirs(os.path.dirname(settings.DB_PATH), exist_ok=True)
+        print(f"База данных не найдена. Выполняется инициализация в {settings.DB_PATH}")
         print("Создание таблиц...")
         Base.metadata.create_all(bind=engine)
         print("Инициализация данными из CSV...")
