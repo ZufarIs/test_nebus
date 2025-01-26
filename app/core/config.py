@@ -20,7 +20,21 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     DATABASE_TYPE: str = "sqlite"
-    SQLITE_URL: str = f"sqlite:///{os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data', 'sql_app.db')}"
+    # Определяем пути
+    PROJECT_ROOT: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    DB_FILE: str = "sql_app.db"
+    DB_DIR: str = "data"
+    
+    @property
+    def DB_PATH(self) -> str:
+        """Полный путь к файлу БД"""
+        return os.path.join(self.PROJECT_ROOT, self.DB_DIR, self.DB_FILE)
+    
+    @property
+    def SQLITE_URL(self) -> str:
+        """URL для подключения к SQLite"""
+        return f"sqlite:///{self.DB_PATH}"
+    
     API_KEY: str
     
     # POSTGRES_SERVER: str = "localhost"
