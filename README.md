@@ -20,7 +20,6 @@ REST API приложение для справочника организаци
 
 - FastAPI + Pydantic
 - SQLAlchemy + Alembic
-- PostgreSQL
 - Docker + Docker Compose
 
 ## Установка и запуск
@@ -30,28 +29,21 @@ REST API приложение для справочника организаци
 1. Клонируйте репозиторий:
 ```bash
 git clone <repository-url>
-cd organization_directory
+cd test_nebus
 ```
 
-2. Создайте файл .env:
+<!-- 2. Создайте файл .env:
 ```bash
-POSTGRES_SERVER=db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
-POSTGRES_DB=organization_directory
-POSTGRES_PORT=5432
+DATABASE_TYPE=sqlite
 API_KEY=your_secret_api_key
+``` -->
+
+3. Соберите и запустите контейнеры:
+```bash
+docker compose -f docker/docker-compose.yml up --build -d
 ```
 
-3. Запустите контейнеры:
-```bash
-docker-compose -f docker/docker-compose.yml up -d
-```
-
-4. Примените миграции:
-```bash
-docker-compose exec web alembic upgrade head
-```
+4. API будет доступно по адресу: http://localhost:8000/api/v1
 
 ### Локальная разработка
 
@@ -64,23 +56,7 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-2. Создайте файл .env с настройками:
-```bash
-DATABASE_TYPE=sqlite
-API_KEY=your_secret_api_key
-```
-
-3. Примените миграции:
-```bash
-alembic upgrade head
-```
-
-4. Инициализируйте тестовые данные:
-```bash
-python scripts/init_db.py
-```
-
-5. Запустите приложение:
+2. Запустите приложение:
 ```bash
 python run.py
 ```
@@ -130,7 +106,6 @@ organization_directory/
 │   ├── models/          # SQLAlchemy модели
 │   └── schemas/         # Pydantic схемы
 ├── docker/              # Docker файлы
-└── tests/               # Тесты
 ```
 
 ## Разработка
@@ -142,13 +117,3 @@ alembic revision --autogenerate -m "описание_изменений"
 alembic upgrade head
 ```
 
-### Тестовые данные
-
-Для инициализации БД тестовыми данными:
-```bash
-python init_test_data.py
-```
-
-## Лицензия
-
-MIT

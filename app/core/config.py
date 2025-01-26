@@ -19,14 +19,14 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     DATABASE_TYPE: str = "sqlite"
-    SQLITE_URL: str = "sqlite:///./sql_app.db"
+    SQLITE_URL: str = "sqlite:///./data/sql_app.db"
     API_KEY: str
     
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "password"
-    POSTGRES_DB: str = "organization_directory"
-    POSTGRES_PORT: int = 5432
+    # POSTGRES_SERVER: str = "localhost"
+    # POSTGRES_USER: str = "postgres"
+    # POSTGRES_PASSWORD: str = "password"
+    # POSTGRES_DB: str = "organization_directory"
+    # POSTGRES_PORT: int = 5432
 
     @property
     def DATABASE_URL(self) -> str:
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
         """
         if self.DATABASE_TYPE == "sqlite":
             return self.SQLITE_URL
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        raise ValueError("Only sqlite is supported")
 
     class Config:
         env_file = ".env"

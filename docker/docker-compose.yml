@@ -2,17 +2,17 @@ version: '3.8'
 
 services:
   web:
-    build: 
+    build:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ../:/app
       - sqlite_data:/app/data
-    env_file:
-      - ../.env
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - DATABASE_TYPE=sqlite
+      - API_KEY=your_secret_api_key
+      - SQLITE_URL=sqlite:///./data/sql_app.db
 
 volumes:
   sqlite_data:

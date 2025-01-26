@@ -2,34 +2,26 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
 class ActivityBase(BaseModel):
-    """Базовая схема вида деятельности."""
+    """Базовая схема для общих полей."""
     name: str
     level: int
     parent_id: Optional[int] = None
 
 class ActivityCreate(ActivityBase):
-    """Схема для создания вида деятельности."""
+    """Схема для создания Activity (без id)."""
     pass
 
 class ActivitySimple(ActivityBase):
     """Упрощенная схема для использования в других моделях."""
     id: int
     
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
 
 class Activity(ActivityBase):
-    """Схема для отображения вида деятельности."""
+    """Схема для отображения Activity (с id)."""
     id: int
-    children: List['Activity'] = []
+    children: List['Activity'] = []  # По умолчанию пустой список
 
-    model_config = ConfigDict(
-        from_attributes=True,
-        json_encoders={
-            set: list  # для корректной сериализации множеств
-        }
-    )
+    model_config = ConfigDict(from_attributes=True)
 
-# Необходимо для правильной работы рекурсивных ссылок
 Activity.model_rebuild() 
